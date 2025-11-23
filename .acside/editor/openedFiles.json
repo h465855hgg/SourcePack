@@ -124,14 +124,14 @@
       "file": "/storage/emulated/0/AndroidIDEProjects/SourcePack/README.md",
       "selection": {
         "end": {
-          "column": 30,
-          "index": 4268,
-          "line": 97
+          "column": 0,
+          "index": 909,
+          "line": 54
         },
         "start": {
-          "column": 30,
-          "index": 4268,
-          "line": 97
+          "column": 0,
+          "index": 909,
+          "line": 54
         }
       }
     },
@@ -181,5 +181,5 @@
       }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/SourcePack/app/src/main/kotlin/com/sourcepack/core/AppStrings.kt"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/SourcePack/README.md"
 }
