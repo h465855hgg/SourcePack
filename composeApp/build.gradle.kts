@@ -54,7 +54,7 @@ compose.desktop {
             packageVersion = "1.0.0"
 
             windows {
-                iconFile.set(project.file("icons/icon.ico"))
+                //iconFile.set(project.file("icons/icon.ico"))
                 shortcut = true
             }
         }
