@@ -1,8 +1,0 @@
-build/
-.gradle/
-local.properties
-.idea/
-.vscode/
-*.iml
-*.jks
-captures/
