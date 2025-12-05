@@ -51,7 +51,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Exe, TargetFormat.Deb)
             packageName = "org.source.pack"
-            packageVersion = "1.0.0"
+            packageVersion = "1.0.1"
 
             windows {
                 //iconFile.set(project.file("icons/icon.ico"))
