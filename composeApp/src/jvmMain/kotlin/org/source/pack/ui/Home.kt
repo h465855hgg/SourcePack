@@ -70,7 +70,7 @@ fun Home() {
                 val keepCurrentDir = currentOutFile?.parentFile?.exists() == true
 
                 val parentDir = if (keepCurrentDir) {
-                    currentOutFile?.parent
+                    currentOutFile.parent
                 } else if (sourceType == SourceType.Local && File(inputPath).exists()) {
                     File(inputPath).parent
                 } else {
