@@ -6,10 +6,11 @@ package com.sourcepack.data
  */
 data class PackerConfig(
     val compress: Boolean = false,      // 是否压缩内容（去除多余空白行）
+    val removeComments: Boolean = false,// 是否去除代码注释 (新增)
     val ignoreGit: Boolean = true,      // 是否忽略 .git 目录
     val ignoreBuild: Boolean = true,    // 是否忽略 build 构建产物目录
     val ignoreGradle: Boolean = true,   // 是否忽略 .gradle 缓存目录
-    val useGitIgnore: Boolean = true,   // 是否解析并应用 .gitignore 规则（预留字段）
+    val useGitIgnore: Boolean = true,   // 是否解析并应用 .gitignore 规则
     val format: Format = Format.MARKDOWN, // 输出文件格式
     val mode: Mode = Mode.FULL          // 输出模式：完整内容或仅目录树
 )

@@ -51,17 +51,19 @@ class PreferenceManager(context: Context) {
     // 将 PackerConfig 对象映射到 SP 存储
     var config: PackerConfig
         get() = PackerConfig(
-            p.getBoolean("c_zip", false),
-            p.getBoolean("c_git", true),
-            p.getBoolean("c_bld", true),
-            p.getBoolean("c_grd", true),
-            p.getBoolean("c_gign", true),
-            Format.values().getOrElse(p.getInt("c_fmt", 0)) { Format.MARKDOWN },
-            Mode.values().getOrElse(p.getInt("c_mod", 0)) { Mode.FULL }
+            compress = p.getBoolean("c_zip", false),
+            removeComments = p.getBoolean("c_nocom", false), // 读取新字段
+            ignoreGit = p.getBoolean("c_git", true),
+            ignoreBuild = p.getBoolean("c_bld", true),
+            ignoreGradle = p.getBoolean("c_grd", true),
+            useGitIgnore = p.getBoolean("c_gign", true),
+            format = Format.values().getOrElse(p.getInt("c_fmt", 0)) { Format.MARKDOWN },
+            mode = Mode.values().getOrElse(p.getInt("c_mod", 0)) { Mode.FULL }
         )
         set(v) {
             p.edit()
                 .putBoolean("c_zip", v.compress)
+                .putBoolean("c_nocom", v.removeComments) // 存储新字段
                 .putBoolean("c_git", v.ignoreGit)
                 .putBoolean("c_bld", v.ignoreBuild)
                 .putBoolean("c_grd", v.ignoreGradle)

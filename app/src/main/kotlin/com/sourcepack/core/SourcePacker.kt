@@ -44,7 +44,7 @@ object SourcePacker {
         try {
             val projectName = root.name
             
-            // 【关键修复】获取正在写入的文件名，防止递归读取自己
+            // 获取正在写入的文件名，防止递归读取自己
             val destName = DocumentFile.fromSingleUri(ctx, destUri)?.name ?: "unknown_output_file"
 
             // 准备目录过滤规则
@@ -118,13 +118,13 @@ object SourcePacker {
         }
     }
 
-    // --- 树生成逻辑 (已修复) ---
+    // --- 树生成逻辑 ---
     private fun generateTreeString(
         node: FastFile,
         prefix: String,
         sb: StringBuilder,
         skipDirs: Set<String>,
-        ignoreFile: String // 新增参数
+        ignoreFile: String
     ) {
         if (prefix.isEmpty()) {
             sb.append("📦 ${node.name}\n")
@@ -154,7 +154,7 @@ object SourcePacker {
         }
     }
 
-    // --- 内容处理逻辑 (已修复) ---
+    // --- 内容处理逻辑 ---
     private suspend fun processNode(
         ctx: Context,
         node: FastFile,
@@ -165,7 +165,7 @@ object SourcePacker {
         binExts: Set<String>,
         cfg: PackerConfig,
         cb: ProgressCallback,
-        ignoreFile: String // 新增参数
+        ignoreFile: String
     ) {
         currentCoroutineContext().ensureActive()
 
@@ -212,10 +212,7 @@ object SourcePacker {
         }
     }
 
-    // ... (剩下的 FastFile 接口、实现类和辅助方法完全保持不变，复制原来的即可) ...
-    // 为节省篇幅，FastFile, JavaIoFile, DocumentFileNode, ZipFastFile, buildZipVFS, appendContent 等保持原样
-    
-    // 补全 FastFile 接口和实现 (防止复制出错，这里简写，实际请保留原文件这部分)
+    // --- FastFile 接口定义和实现 (保持不变) ---
     interface FastFile {
         val name: String
         val isDirectory: Boolean
@@ -286,22 +283,38 @@ object SourcePacker {
         packToStream(ctx, rootNode, destUri, uFiles, uExts, cfg, cb)
     }
 
+    // --- 核心写入逻辑 (已重构支持去除注释) ---
     private fun appendContent(ctx: Context, node: FastFile, path: String, writer: BufferedWriter, cfg: PackerConfig) {
         try {
+            // 写入文件头 (Header), 这部分不受 removeComments 影响
             writer.write(formatHeader(path, cfg.format))
+            
             node.openStream(ctx).use { ins ->
+                // 读取开头 1024 字节检测是否为二进制
                 val headBuffer = ByteArray(1024)
                 val headReadLen = readAtMost(ins, headBuffer)
                 val isBinary = if (headReadLen > 0) isBufferBinary(headBuffer, headReadLen) else false
+                
                 if (isBinary) {
                     writer.write("[Binary content detected]")
                 } else {
+                    // 构造完整的输入流
                     val headStream = ByteArrayInputStream(headBuffer, 0, headReadLen)
                     val combinedStream = SequenceInputStream(headStream, ins)
-                    val reader = BufferedReader(InputStreamReader(combinedStream), 8192)
-                    var line = reader.readLine()
-                    while (line != null) {
-                         if (cfg.compress) {
+                    
+                    // 读取全部文本
+                    val rawContent = combinedStream.bufferedReader().use { it.readText() }
+                    
+                    // 根据配置决定是否移除注释
+                    val contentToProcess = if (cfg.removeComments) {
+                        removeComments(rawContent, path)
+                    } else {
+                        rawContent
+                    }
+
+                    // 逐行写入并应用压缩规则
+                    contentToProcess.lineSequence().forEach { line ->
+                        if (cfg.compress) {
                             val trimmed = line.trim()
                             if (trimmed.isNotEmpty()) {
                                 if (cfg.format == Format.XML) writer.write(escapeXml(trimmed))
@@ -313,13 +326,39 @@ object SourcePacker {
                              else writer.write(line)
                              writer.write("\n")
                         }
-                        line = reader.readLine()
                     }
                 }
             }
             writer.write(formatFooter(cfg.format))
         } catch (e: Exception) {
             writer.write("\n[Read Error: ${e.message}]\n")
+        }
+    }
+
+    /**
+     * 根据文件扩展名移除代码注释
+     */
+    private fun removeComments(text: String, fileName: String): String {
+        val ext = fileName.substringAfterLast('.', "").lowercase()
+        return when (ext) {
+            // C-Style: Java, Kotlin, C, C++, JS, TS, Go, Rust, Swift, CSS, Gradle(Groovy/Kotlin), Scala
+            "java", "kt", "kts", "c", "cpp", "h", "cs", "js", "ts", "jsx", "tsx", "swift", "go", "rs", "scala", "groovy", "css", "scss", "gradle" -> {
+                // 1. 移除块注释 /* ... */
+                val noBlock = text.replace(Regex("/\\*[\\s\\S]*?\\*/"), "")
+                // 2. 移除行注释 // ... (简单处理，不处理字符串内的 // 以避免过度复杂)
+                // 使用 (?<!:)// 避免匹配 http://
+                noBlock.replace(Regex("(?<!:)//.*"), "")
+            }
+            // Hash-Style: Python, Shell, Ruby, YAML, Properties, Dockerfile, TOML
+            "py", "sh", "rb", "yaml", "yml", "properties", "dockerfile", "conf", "toml" -> {
+                text.replace(Regex("#.*"), "")
+            }
+            // XML-Style: XML, HTML, SVG
+            "xml", "html", "htm", "svg", "androidmanifest" -> {
+                text.replace(Regex("<!--[\\s\\S]*?-->"), "")
+            }
+            // 默认不处理
+            else -> text
         }
     }
 

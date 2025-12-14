@@ -21,6 +21,7 @@ import com.sourcepack.data.*
 import com.sourcepack.viewmodel.MainVM
 import com.sourcepack.Page
 import com.sourcepack.BuildConfig 
+
 /**
  * 设置主页面
  * 包含常规配置、黑名单入口、外观设置、关于信息及开源声明
@@ -155,7 +156,6 @@ fun SettingsRoot(onBack: () -> Unit, onNav: (Page) -> Unit, vm: MainVM) {
                     Text(Str.get("本项目使用了以下开源库 (点击跳转)：", "This project uses the following open source libraries (Tap to open):"), style = MaterialTheme.typography.labelLarge)
                     Spacer(Modifier.height(16.dp))
                     
-                    // 在这里填入了真实的 GitHub 或官方地址
                     LibraryItem("Kotlin", "JetBrains", "Apache 2.0", "https://github.com/JetBrains/kotlin")
                     LibraryItem("Jetpack Compose", "Google", "Apache 2.0", "https://androidx.tech")
                     LibraryItem("Material Design 3", "Google", "Apache 2.0", "https://github.com/material-components/material-components-android")
@@ -187,6 +187,7 @@ fun GeneralSettings(vm: MainVM, back: () -> Unit) {
             
             SettingHeader(Str.get("输出内容", "Output Content"))
             SwitchItem(Str.get("压缩内容 (去换行)", "Compress content"), cfg.compress) { vm.saveCfg(cfg.copy(compress = it)) }
+            SwitchItem(Str.get("去除代码注释", "Remove Comments"), cfg.removeComments) { vm.saveCfg(cfg.copy(removeComments = it)) }
             
             SettingHeader(Str.get("输出格式", "Output Format"))
             FlowRow(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -308,7 +309,6 @@ fun BlacklistSettings(vm: MainVM, back: () -> Unit) {
     }
 }
 
-// --- 更新后的 LibraryItem 组件 ---
 @Composable
 fun LibraryItem(name: String, author: String, license: String, url: String) {
     val ctx = LocalContext.current
@@ -316,19 +316,15 @@ fun LibraryItem(name: String, author: String, license: String, url: String) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                // 点击时调用系统浏览器打开链接
                 try {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                     ctx.startActivity(intent)
-                } catch (_: Exception) {
-                    // 防止没有浏览器导致的崩溃，虽然极少见
-                }
+                } catch (_: Exception) { }
             }
             .padding(vertical = 8.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(name, style = MaterialTheme.typography.titleMedium)
-            // 可以在这里加个小图标提示是外链，不过保持简洁也可以
         }
         
         Row(verticalAlignment = Alignment.CenterVertically) {

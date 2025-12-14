@@ -140,11 +140,40 @@ fun HomeScreen(vm: MainVM, toCfg: () -> Unit, onShare: (Uri) -> Unit) {
                     Icon(Ico.Inventory2, null, modifier = Modifier.size(80.dp), tint = MaterialTheme.colorScheme.primary)
                     Text("SourcePack", style = MaterialTheme.typography.displaySmall)
                     Spacer(Modifier.height(48.dp))
-                    HomeBtn(Ico.Folder, Str.get("选择文件夹", "Project Folder"), Str.get("扫描并导出", "Scan & Export")) { launcherDir.launch(null) }
+                    
+                    // --- 1. 文件夹模式 ---
+                    HomeBtn(
+                        icon = Ico.Folder, 
+                        title = Str.get("项目文件夹", "Project Folder"), 
+                        subtitle = Str.get(
+                            "递归扫描整个项目。适合让 AI 理解完整架构和文件关系。", 
+                            "Scans entire project recursively. Best for full architecture analysis."
+                        )
+                    ) { launcherDir.launch(null) }
+                    
                     Spacer(Modifier.height(16.dp))
-                    HomeBtn(Ico.Description, Str.get("选择文件", "Select Files"), Str.get("挑选文件并导出", "Pick & Export")) { launcherFiles.launch(arrayOf("*/*")) }
+                    
+                    // --- 2. 选择文件模式 ---
+                    HomeBtn(
+                        icon = Ico.Description, 
+                        title = Str.get("选择文件", "Select Files"), 
+                        subtitle = Str.get(
+                            "精准提取特定文件。适合专项 Debug，节省 AI Token 消耗。", 
+                            "Pick specific files. Best for focused debugging and saving tokens."
+                        )
+                    ) { launcherFiles.launch(arrayOf("*/*")) }
+                    
                     Spacer(Modifier.height(16.dp))
-                    HomeBtn(Ico.CloudDownload, "GitHub", Str.get("下载并打包", "Download & Pack")) { showGitDialog = true }
+                    
+                    // --- 3. GitHub 模式 ---
+                    HomeBtn(
+                        icon = Ico.CloudDownload, 
+                        title = "GitHub", 
+                        subtitle = Str.get(
+                            "直接下载并解析远程仓库。适合分析开源项目源码。", 
+                            "Downloads & parses remote repo. Best for analyzing open source projects."
+                        )
+                    ) { showGitDialog = true }
                 }
                 
                 is UiState.Loading -> LoadingView(msg = s.msg, detail = s.detail)
@@ -156,7 +185,6 @@ fun HomeScreen(vm: MainVM, toCfg: () -> Unit, onShare: (Uri) -> Unit) {
                     onReset = { vm.reset() }
                 )
                 
-                // 修改：传入错误日志 URI，如果有的话，按钮会变成红色并分享日志
                 is UiState.Error -> ResultCard(
                     success = false, 
                     msg = s.err, 
