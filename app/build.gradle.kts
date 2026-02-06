@@ -1,4 +1,3 @@
-// app/build.gradle.kts
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -14,10 +13,10 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 3
-        versionName = "1.2.2" // Version Bump
+        versionName = "1.2.3" 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        resourceConfigurations.addAll(listOf("zh", "en"))
+        resourceConfigurations.addAll(listOf("zh")) 
     }
 
     signingConfigs {
@@ -33,7 +32,6 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            // 开启 R8 完全模式，进一步压缩代码
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
